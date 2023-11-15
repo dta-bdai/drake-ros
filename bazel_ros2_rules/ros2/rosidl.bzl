@@ -216,6 +216,16 @@ def _rosidl_generate_ament_index_entry_impl(ctx):
     )
     manifest_out = ctx.actions.declare_file(manifest_path)
 
+    my_path = paths.join(
+        ctx.attr.prefix,
+        "lib/lib" + ctx.attr.group + ".so",
+    )
+    # my_file = ctx.actions.declare_file(my_path)
+    # ctx.actions.write(
+    #     output = my_file,
+    #     content = "",
+    # )
+
     # Gather interface files.
     interface_files = []
     for def_rule in ctx.attr.definitions_deps:
@@ -249,7 +259,11 @@ def _rosidl_generate_ament_index_entry_impl(ctx):
             ctx.attr.group,
             short_path,
         )
+
         runfiles_symlinks[symlink_path] = path
+
+    runfiles_symlinks[my_path] = ctx.file.libdep
+    # print(runfiles_symlinks)
 
     return [
         AmentIndex(prefix = ctx.attr.prefix),
@@ -269,6 +283,10 @@ rosidl_generate_ament_index_entry = rule(
         # A prefix is required because the shim can't prepend the runfiles
         # root to AMENT_PREFIX_PATH
         prefix = attr.string(default = "rosidl_generate_ament_index_entry"),
+        libdep = attr.label(
+          default = "@ros2_example_bazel_installed//ros2_example_apps:ros2_example_apps_msgs__rosidl_typesupport_introspection_cpp",
+          allow_single_file = True,
+        ),
     ),
     implementation = _rosidl_generate_ament_index_entry_impl,
     output_to_genfiles = True,
@@ -1082,6 +1100,13 @@ def rosidl_typesupport_cc_library(
         ],
         **kwargs
     )
+    # folder = "rosidl_generate_ament_index_entry"
+    # native.genrule(
+    #     name = "copy_" + name,
+    #     srcs = [":" + name],
+    #     outs = [folder + "/yo_" + name],
+    #     cmd = "mkdir -p ../" + folder + " && cp $(SRCS) ../$(OUTS)",
+    # )
 
 def rosidl_cc_support(
         name,

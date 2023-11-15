@@ -267,3 +267,13 @@ ros_cc_test(
         "@ros2//resources/rmw_isolation:rmw_isolation_cc",
     ],
 )
+
+ros_py_binary(
+    name = "temp_rosbag_wrapper",
+    srcs = ["test/temp_rosbag_wrapper.py"],
+    data = [
+        ":ros2_example_apps_msgs_cc",
+        "@ros2",
+    ],
+    main = "test/temp_rosbag_wrapper.py",
+)

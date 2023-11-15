@@ -70,6 +70,7 @@ ROS2_PACKAGES = [
     "rclcpp",
     "rclcpp_action",
     "rclpy",
+    "ros2bag",
     "ros2cli",
     "ros2cli_common_extensions",
     "rosidl_default_generators",
