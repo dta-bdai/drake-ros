@@ -5,7 +5,7 @@ import functools
 import os
 
 from rmw_isolation import generate_isolated_rmw_env
-from rules_python.python.runfiles import runfiles
+from python.runfiles import Runfiles
 
 
 def make_unique_ros_isolation_env(
@@ -60,7 +60,7 @@ def make_unique_ros_isolation_env(
 
 @functools.lru_cache
 def _runfiles():
-    return runfiles.Create()
+    return Runfiles.Create()
 
 
 def Rlocation(path):
