@@ -1,6 +1,7 @@
 # -*- python -*-
 # vi: set ft=python :
 
+load("@rules_python//python:defs.bzl", "py_library")
 load("//tools:common.bzl", "interfaces_filegroup", "share_filegroup")
 load(":ros_py.bzl", "ros_import_binary")
 

@@ -118,10 +118,12 @@ def ros_py_binary(
         **shim_kwargs
     )
 
+    data = kwargs.get("data", [])
+
     kwargs.update(
-        srcs = [shim_name],
+        srcs = [shim_name] + kwargs["srcs"],
         main = shim_name,
-        data = [":" + noshim_name],
+        data = [":" + noshim_name] + data,
         deps = [
             "@bazel_ros2_rules//ros2:dload_shim_py",
             ":" + noshim_name,  # Support py_binary being used a dependency
@@ -251,6 +253,8 @@ def ros_py_test(
     noshim_name = "_" + name + "_noshim"
     noshim_kwargs = remove_test_specific_kwargs(kwargs)
     noshim_kwargs.update(testonly = True)
+    if "main" not in noshim_kwargs:
+        noshim_kwargs["main"] = name + ".py"
     shim_env_changes = dict(RUNTIME_ENVIRONMENT)
     if rmw_implementation:
         noshim_kwargs, shim_env_changes = \
@@ -276,7 +280,7 @@ def ros_py_test(
     )
 
     kwargs.update(
-        srcs = [shim_name],
+        srcs = [shim_name] + kwargs["srcs"],
         main = shim_name,
         data = [":" + noshim_name],
         deps = ["@bazel_ros2_rules//ros2:dload_shim_py"],
