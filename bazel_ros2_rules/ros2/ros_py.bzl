@@ -178,6 +178,10 @@ def _make_respath(relpath, workspace_name):
                 "paths can be resolved properly",
             )
         repo = workspace_name
+    elif repo.startswith("@"):
+        # Remove `@` from external repo for Rlocation.
+        repo = repo[1:]
+
     pkg = native.package_name()
     if pkg != "":
         pieces = [repo, pkg, relpath]
