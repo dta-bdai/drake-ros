@@ -1,8 +1,10 @@
+import functools
 import glob
 from multiprocessing.dummy import Pool
 import os
 from pathlib import Path
 import re
+import sys
 from tempfile import TemporaryDirectory
 
 import cmake_tools
@@ -21,7 +23,7 @@ _ALLOWED_SYSTEM_LIBS = [
 
 
 def collect_ament_cmake_shared_library_codemodel(
-    target, additional_libraries
+    target, additional_libraries, allow_system_local=False
 ) -> CcProperties:
     assert 'SHARED_LIBRARY' == target.target_type
 
@@ -85,12 +87,13 @@ def collect_ament_cmake_shared_library_codemodel(
     if local_link_libraries:
         error_message = 'Found libraries under /usr/local: '
         error_message += ', '.join(local_link_libraries)
-        raise RuntimeError(error_message)
+        if not allow_system_local:
+            raise RuntimeError(error_message)
+        print(error_message, file=sys.stderr)
 
-    local_include_directories = []
     include_directories = []
+    local_include_directories = []
     for path in target.includes + target.system_includes:
-        include_directories.append(path)
         if is_system_include(path):
             if path.startswith('/usr/local'):
                 local_include_directories.append(path)
@@ -100,7 +103,9 @@ def collect_ament_cmake_shared_library_codemodel(
     if local_include_directories:
         error_message = 'Found include directories under /usr/local: '
         error_message += ', '.join(local_include_directories)
-        raise RuntimeError(error_message)
+        if not allow_system_local:
+            raise RuntimeError(error_message)
+        print(error_message, file=sys.stderr)
 
     defines = []
     ignored_defines = [
@@ -130,7 +135,7 @@ def collect_ament_cmake_shared_library_codemodel(
         link_flags = link_flags)
 
 
-def collect_ament_cmake_package_properties(name, metadata):
+def collect_ament_cmake_package_properties(name, metadata, allow_system_local=False):
     # NOTE(hidmic): each package properties are analyzed in isolation
     # to preclude potential interactions if multiple packages were
     # brought into the same CMake run. The latter could be done for
@@ -173,13 +178,13 @@ def collect_ament_cmake_package_properties(name, metadata):
                 metadata['prefix'], 'lib', f'lib{name}__rosidl*.so')
             additional_libraries.extend(glob.glob(glob_pattern))
         properties = collect_ament_cmake_shared_library_codemodel(
-            target, additional_libraries
+            target, additional_libraries, allow_system_local
         )
         return properties
 
 
 def collect_ament_cmake_package_direct_properties(
-    name, metadata, dependencies, cache
+    name, metadata, dependencies, cache, allow_system_local=False
 ):
     if 'ament_cmake' not in cache:
         cache['ament_cmake'] = {}
@@ -187,7 +192,7 @@ def collect_ament_cmake_package_direct_properties(
 
     if name not in ament_cmake_cache:
         ament_cmake_cache[name] = \
-            collect_ament_cmake_package_properties(name, metadata)
+            collect_ament_cmake_package_properties(name, metadata, allow_system_local)
 
     properties = ament_cmake_cache[name]
     for dependency_name, dependency_metadata in dependencies.items():
@@ -196,7 +201,7 @@ def collect_ament_cmake_package_direct_properties(
         if dependency_name not in ament_cmake_cache:
             ament_cmake_cache[dependency_name] = \
                 collect_ament_cmake_package_properties(
-                    dependency_name, dependency_metadata)
+                    dependency_name, dependency_metadata, allow_system_local)
         dependency_properties = ament_cmake_cache[dependency_name]
 
         # Remove duplicates maintaining order.
@@ -231,7 +236,7 @@ def collect_ament_cmake_package_direct_properties(
     return properties
 
 
-def precache_ament_cmake_properties(packages, jobs=None):
+def precache_ament_cmake_properties(packages, allow_system_local=False, jobs=None):
     ament_cmake_packages = {
         name: metadata
         for name, metadata in packages.items()
@@ -240,7 +245,10 @@ def precache_ament_cmake_properties(packages, jobs=None):
     with Pool(jobs) as pool:
         return dict(zip(
             ament_cmake_packages.keys(), pool.starmap(
-                collect_ament_cmake_package_properties,
+                functools.partial(
+                    collect_ament_cmake_package_properties,
+                    allow_system_local=allow_system_local
+                ),
                 ament_cmake_packages.items()
             )
         ))
