@@ -127,6 +127,8 @@ def base_ros2_repository(repo_ctx, workspaces):
     cmd = ["./run.bash", str(path_to_generate_build_file_tool)]
     for path, path_in_sandbox in workspaces.items():
         cmd.extend(["-s", path + ":" + path_in_sandbox])
+    if repo_ctx.attr.allow_system_local:
+        cmd.extend(["--allow-system-local"])
     if repo_ctx.attr.jobs > 0:
         cmd.extend(["-j", repr(repo_ctx.attr.jobs)])
     cmd.extend(["-d", "distro_metadata.json", repo_ctx.name])
@@ -167,6 +169,11 @@ def base_ros2_repository_attrs():
         "exclude_packages": attr.string_list(
             doc = "Optional set of packages to exclude, " +
                   "with precedence over included packages. Defaults to none.",
+        ),
+        "allow_system_local": attr.bool(
+            doc = "Whether to allow linking libraries under /usr/local " +
+                  "or not. Defaults to False.",
+            default = False,
         ),
         "jobs": attr.int(
             doc = "Number of CMake jobs to use during package " +

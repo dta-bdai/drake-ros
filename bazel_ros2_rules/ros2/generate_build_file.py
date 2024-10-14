@@ -58,6 +58,10 @@ def parse_arguments():
         help='Path mappings for workspace sandboxing'
     )
     parser.add_argument(
+        '--allow-system-local', action='store_true', default=False,
+        help="Whether to allow linking libraries under /usr/local or not"
+    )
+    parser.add_argument(
         '-j', '--jobs', metavar='N', type=int, default=None,
         help='Number of CMake jobs to use during package configuration scraping'
     )
@@ -82,7 +86,7 @@ def parse_arguments():
     return args
 
 
-def write_build_file(fd, repo_name, distro, sandbox, cache):
+def write_build_file(fd, repo_name, distro, sandbox, cache, allow_system_local=False):
     rmw_implementation_packages = {
         name: metadata for name, metadata in distro['packages'].items()
         if 'rmw_implementation_packages' in metadata.get('groups', [])
@@ -134,7 +138,8 @@ filegroup(
 
         if 'cmake' in metadata.get('build_type'):
             properties = collect_ament_cmake_package_direct_properties(
-                name, metadata, direct_dependencies, cache
+                name, metadata, direct_dependencies, cache,
+                allow_system_local=allow_system_local
             )
 
             _, template, config = configure_package_cc_library(
@@ -154,7 +159,7 @@ filegroup(
         # but to look for it.
         try:
             properties = collect_ament_python_package_direct_properties(
-                name, metadata, direct_dependencies, cache
+                name, metadata, direct_dependencies, cache,
             )
             # Add 'py' as language if not there.
             if 'langs' not in metadata:
@@ -192,9 +197,6 @@ filegroup(
     for _, template, config in configure_executable_imports(
         distro['executables'], distro['packages'], sandbox
     ):
-        # if "ros2" in config["name"]:
-        #     print(config["name"])
-        #     import pdb; pdb.set_trace()
         fd.write(interpolate(template, config) + '\n')
 
 
@@ -203,11 +205,15 @@ def main():
 
     ament_cmake_cache = \
         precache_ament_cmake_properties(
-            args.distro['packages'], jobs=args.jobs)
+            args.distro['packages'], jobs=args.jobs,
+            allow_system_local=args.allow_system_local)
 
     write_build_file(
-        args.output, args.repository_name, args.distro,
-        args.sandbox, {'ament_cmake': ament_cmake_cache})
+        args.output,
+        args.repository_name, args.distro, args.sandbox,
+        cache={'ament_cmake': ament_cmake_cache},
+        allow_system_local=args.allow_system_local
+    )
 
 
 if __name__ == '__main__':
