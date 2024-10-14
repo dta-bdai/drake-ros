@@ -72,7 +72,7 @@ def is_system_library(library_path):
     """
     library_path = os.path.realpath(library_path)
     return any(
-        library_path.startswith(path)
+        library_path.startswith(os.path.realpath(path))
         for path in system_link_dirs() + system_shared_lib_dirs())
 
 
