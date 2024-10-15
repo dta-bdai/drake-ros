@@ -150,15 +150,16 @@ def configure_package_py_library(
     name, metadata, properties, dependencies, sandbox
 ):
     target_name = py_name(name, metadata)
-    eggs = [sandbox(egg_path) for egg_path, _ in properties.python_packages]
-    tops = [
-        sandbox(top_level) for _, top_level in properties.python_packages]
+    eggs = [sandbox(egg_path) for egg_path in properties.python_eggs]
+    tops = [sandbox(top_level) for top_level in properties.python_packages]
+    extras = [sandbox(path) for path in properties.python_modules]
     imports = [os.path.dirname(egg) for egg in eggs]
 
     template = 'templates/package_py_library.bazel.tpl'
     config = {
         'name': target_name,
         'tops': tops,
+        'extras': extras,
         'eggs': eggs,
         'imports': imports
     }
