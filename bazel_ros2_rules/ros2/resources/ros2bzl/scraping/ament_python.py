@@ -1,6 +1,7 @@
 import glob
 from importlib.metadata import distribution
 from importlib.metadata import PackageNotFoundError
+import os.path
 import sysconfig
 
 from ros2bzl.scraping.properties import PyProperties
