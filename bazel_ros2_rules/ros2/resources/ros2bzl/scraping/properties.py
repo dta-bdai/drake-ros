@@ -46,6 +46,7 @@ class PyProperties:
     __slots__ = (
         'cc_extensions',
         'cc_libraries',
+        'python_eggs',
         'python_packages',
         'python_modules',
     )
