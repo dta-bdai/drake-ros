@@ -22,7 +22,7 @@ def collect_ament_python_package_properties(name, metadata):
     egg_path, top_levels = find_python_package(name)
     properties = PyProperties()
     properties.python_eggs = tuple([egg_path])
-    properties.python_packages = tuple(map(os.path.isdirectory, top_levels))
+    properties.python_packages = tuple(map(os.path.isdir, top_levels))
     properties.python_modules = tuple(map(os.path.isfile, top_levels))
 
     cc_libraries = []
