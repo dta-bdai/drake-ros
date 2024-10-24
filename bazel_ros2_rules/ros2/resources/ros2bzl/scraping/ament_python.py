@@ -1,6 +1,7 @@
 import glob
 from importlib.metadata import distribution
 from importlib.metadata import PackageNotFoundError
+import os.path
 import sysconfig
 
 from ros2bzl.scraping.properties import PyProperties
@@ -13,15 +14,24 @@ EXTENSION_SUFFIX = sysconfig.get_config_var('EXT_SUFFIX')
 def find_python_package(name):
     dist = distribution(name)
     top_level = dist.read_text('top_level.txt')
-    top_level = top_level.rstrip('\n')
-    return str(dist._path), str(dist.locate_file(top_level))
+    top_levels = top_level.rstrip('\n').splitlines()
+    return str(dist._path), [str(dist.locate_file(top)) for top in top_levels]
 
 
 def collect_ament_python_package_properties(name, metadata):
-    egg_path, top_level = find_python_package(name)
+    egg_path, top_levels = find_python_package(name)
     properties = PyProperties()
-    properties.python_packages = tuple([(egg_path, top_level)])
-    cc_libraries = glob.glob('{}/**/*.so'.format(top_level),  recursive=True)
+    properties.python_eggs = tuple([egg_path])
+    properties.python_packages = tuple(filter(os.path.isdir, top_levels))
+    properties.python_modules = tuple([
+        top + ".py" for top in top_levels if os.path.isfile(top + ".py")])
+
+    cc_libraries = []
+    for top_level in properties.python_packages:
+        cc_libraries.extend(glob.glob(
+            '{}/**/*.so'.format(top_level),  recursive=True
+        ))
+
     if cc_libraries:
         cc_libraries.extend(set(
             dep for library in cc_libraries

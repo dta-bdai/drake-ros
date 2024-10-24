@@ -1,6 +1,6 @@
 py_library(
     name = @name@,
-    srcs = glob(["{}/**/*.py".format(x) for x in @tops@]),
+    srcs = glob(["{}/**/*.py".format(x) for x in @tops@]) + @extras@,
     data = glob(
        include=[
          "{}/**/*.*".format(x) for x in @tops@
