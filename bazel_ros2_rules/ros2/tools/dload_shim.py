@@ -54,5 +54,5 @@ def do_dload_shim(executable_path, names, actions):
         os.environ[SHIMMED_SENTINEL] = ""
 
     real_executable_path = r.Rlocation(executable_path)  # noqa
-    argv = [real_executable_path] + argv[1:]
-    os.execv(real_executable_path, argv)
+    argv = [sys.executable, real_executable_path] + argv[1:]
+    os.execv(sys.executable, argv)

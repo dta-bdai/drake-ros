@@ -165,8 +165,8 @@ from bazel_ros_env import Rlocation
 assert __name__ == "__main__"
 launch_file = Rlocation({launch_respath})
 ros2_bin = Rlocation("ros2/ros2")
-args = [ros2_bin, "launch", launch_file] + sys.argv[1:]
-os.execv(ros2_bin, args)
+args = [sys.executable, ros2_bin, "launch", launch_file] + sys.argv[1:]
+os.execv(sys.executable, args)
 """
 
 def _make_respath(relpath, workspace_name):
