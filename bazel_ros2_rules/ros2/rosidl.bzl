@@ -623,6 +623,7 @@ def rosidl_py_library(
         data = [],
         c_deps = [],
         py_deps = [],
+        extra_py_deps = [],
         cc_binary_rule = native.cc_binary,
         cc_library_rule = native.cc_library,
         py_library_rule = py_library,
@@ -727,7 +728,7 @@ def rosidl_py_library(
         srcs = generated_py_sources,
         imports = [import_],
         data = data + py_data,
-        deps = py_deps,
+        deps = py_deps + extra_py_deps,
         **kwargs
     )
 
@@ -1527,11 +1528,12 @@ def rosidl_py_support(
         interfaces = interfaces,
         includes = [_make_public_label(dep, "_defs") for dep in deps],
         data = data,
-        py_deps = [_make_public_label(dep, "_py") for dep in deps] + extra_py_deps,
+        py_deps = [_make_public_label(dep, "_py") for dep in deps],
         c_deps = [_make_public_label(name, "_c")] + [
             _make_public_label(dep, "_c")
             for dep in deps
         ] + extra_c_deps,
+        extra_py_deps = extra_py_deps,
         cc_binary_rule = cc_binary_rule,
         cc_library_rule = cc_library_rule,
         py_library_rule = py_library_rule,
