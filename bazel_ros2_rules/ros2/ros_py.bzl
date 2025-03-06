@@ -1,5 +1,6 @@
 # -*- python -*-
 
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load(
     "//tools:common.bzl",
     "incorporate_rmw_implementation",
@@ -22,7 +23,7 @@ def ros_import_binary(
         name,
         executable,
         rmw_implementation = None,
-        py_binary_rule = native.py_binary,
+        py_binary_rule = py_binary,
         **kwargs):
     """
     Imports an existing executable by wrapping it with a Python shim that will
@@ -73,7 +74,7 @@ def ros_import_binary(
 def ros_py_binary(
         name,
         rmw_implementation = None,
-        py_binary_rule = native.py_binary,
+        py_binary_rule = py_binary,
         **kwargs):
     """
     Builds a Python binary and wraps it with a shim that will inject the
@@ -165,8 +166,24 @@ from bazel_ros_env import Rlocation
 assert __name__ == "__main__"
 launch_file = Rlocation({launch_respath})
 ros2_bin = Rlocation("ros2/ros2")
-args = [sys.executable, ros2_bin, "launch", launch_file] + sys.argv[1:]
-os.execv(sys.executable, args)
+args = [ros2_bin, "launch", launch_file] + sys.argv[1:]
+
+def is_bash_script(script):
+    with open(script, "r") as file:
+        first_line = file.readline().strip()
+    if first_line.startswith("#!/bin/bash") or first_line.startswith(
+        "#!/usr/bin/env bash"
+    ):
+        return True
+    return False
+
+if is_bash_script(ros2_bin):
+    executable = ros2_bin
+else:
+    executable = sys.executable
+    args = [executable] + args
+
+os.execv(executable, args)
 """
 
 def _make_respath(relpath, workspace_name):
@@ -235,8 +252,8 @@ def ros_launch(
 def ros_py_test(
         name,
         rmw_implementation = None,
-        py_binary_rule = native.py_binary,
-        py_test_rule = native.py_test,
+        py_binary_rule = py_binary,
+        py_test_rule = py_test,
         **kwargs):
     """
     Builds a Python test and wraps it with a shim that will inject the minimal

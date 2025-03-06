@@ -2,6 +2,7 @@ load(
     ":_calculate_rosidl_capitalization.bzl",
     "run_calculate_rosidl_capitalization_tests",
 )
+load("@rules_python//python:defs.bzl", "py_library", "py_test", "py_binary")
 
 cc_library(
     name = "dload_shim_cc",
@@ -18,6 +19,7 @@ cc_library(
 py_library(
     name = "dload_shim_py",
     srcs = ["tools/dload_shim.py"],
+    imports = ["../.."],
     visibility = ["//visibility:public"],
     deps = ["@bazel_tools//tools/python/runfiles"],
 )

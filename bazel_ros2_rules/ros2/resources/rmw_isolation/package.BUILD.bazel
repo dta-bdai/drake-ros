@@ -1,6 +1,7 @@
 # -*- python -*-
 # vi: set ft=python :
 
+load("@rules_python//python:defs.bzl", "py_library")
 load("//:ros_cc.bzl", "ros_cc_binary", "ros_cc_test")
 load("//:ros_py.bzl", "ros_py_binary", "ros_py_test")
 

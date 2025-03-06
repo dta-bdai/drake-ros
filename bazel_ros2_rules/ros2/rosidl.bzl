@@ -2,6 +2,7 @@
 
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@python_dev//:version.bzl", "PYTHON_EXTENSION_SUFFIX")
+load("@rules_python//python:defs.bzl", "py_library")
 load("//tools:ament_index.bzl", "AmentIndex")
 load(
     ":_calculate_rosidl_capitalization.bzl",
@@ -624,7 +625,7 @@ def rosidl_py_library(
         py_deps = [],
         cc_binary_rule = native.cc_binary,
         cc_library_rule = native.cc_library,
-        py_library_rule = native.py_library,
+        py_library_rule = py_library,
         **kwargs):
     """
     Generates and builds Python ROS 2 interfaces, including any C extensions.
@@ -1374,7 +1375,7 @@ def rosidl_py_support(
         group = None,
         cc_binary_rule = native.cc_binary,
         cc_library_rule = native.cc_library,
-        py_library_rule = native.py_library,
+        py_library_rule = py_library,
         **kwargs):
     """
     Generates and builds Python ROS 2 interfaces.
@@ -1547,7 +1548,7 @@ def rosidl_interfaces_group(
         group = None,
         cc_binary_rule = native.cc_binary,
         cc_library_rule = native.cc_library,
-        py_library_rule = native.py_library,
+        py_library_rule = py_library,
         **kwargs):
     """
     Generates and builds C++ and Python ROS 2 interfaces.
