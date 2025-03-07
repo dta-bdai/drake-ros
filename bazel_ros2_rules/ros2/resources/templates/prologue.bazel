@@ -9,3 +9,11 @@ load(":ros_py.bzl", "ros_import_binary")
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["system-rosdep-keys.txt"])
+
+# Turn `ros2` script to `ros2.py` so it can be used in other py_binary.
+genrule(
+    name = "ros2_py",
+    srcs = ["_opt_ros_humble/bin/ros2"],
+    outs = ["ros2.py"],
+    cmd = "cp -P $(location _opt_ros_humble/bin/ros2) $@",
+)

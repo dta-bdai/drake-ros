@@ -4,9 +4,11 @@ ros_import_binary(
     py_binary_rule = py_binary,
     data = @data@,
     deps = @deps@ + [
-        requirement("pyyaml"),
-        requirement("empy"),
-        requirement("lark"),
-        requirement("catkin_pkg"),
+        "@pypi//catkin_pkg",
+        "@pypi//empy",
+        "@pypi//lark",
+        "@pypi//netifaces",
+        "@pypi//packaging",
+        "@pypi//pyyaml",
     ],
 )

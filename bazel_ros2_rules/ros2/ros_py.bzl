@@ -157,33 +157,36 @@ _generate_file = rule(
     implementation = _generate_file_impl,
 )
 
+# Use mvukov's launch template instead of exec `@ros2//:ros2` bin.
+# https://github.com/mvukov/rules_ros2/blob/57db841c43d4581d98a37a135cb54685b8229c5e/ros2/launch.py.tpl#L1C1-L16C51
+#
+# This is because the auto-generated `@ros2//:ros2` using `ros_import_binary`
+# does not have necessary dependencies to launch the target. This leads to import failures
+# when launch tool tries to load the launch script by executing it:
+# https://github.com/ros2/launch/blob/bdf124d83c847b5205c204932e9f86daccc0c747/launch/launch/launch_description_sources/python_launch_file_utilities.py#L39
+# https://github.com/python/cpython/blob/a025f27d94afe732be2e9e6f05b9007d04f983a8/Lib/importlib/_bootstrap_external.py#L762
+#
+# This problem doesn't happen with the default @rules_python's bootstrap_impl config setting,
+# since that uses PYTHONPATH env variable, which is inherited by the spawned `@ros2//:ros2` process.
+#
+# However, with `--@rules_python//python/config_settings:bootstrap_impl=script`, that is not the case.
+# This implements a 2-stage bootstraping process, setting `sys.path` from manifest files, without PYTHONPATH.
+# Hence, the deps list is not available in the child `@ros2//:ros2` process.
+
 _LAUNCH_PY_TEMPLATE = """
 import os
 import sys
 
 from bazel_ros_env import Rlocation
+from ros2cli import cli
+from ros2launch.command import launch
 
 assert __name__ == "__main__"
 launch_file = Rlocation({launch_respath})
-ros2_bin = Rlocation("ros2/ros2")
-args = [ros2_bin, "launch", launch_file] + sys.argv[1:]
+argv = [launch_file] + sys.argv[1:]
+extension = launch.LaunchCommand()
+sys.exit(cli.main(argv=argv, extension=extension))
 
-def is_bash_script(script):
-    with open(script, "r") as file:
-        first_line = file.readline().strip()
-    if first_line.startswith("#!/bin/bash") or first_line.startswith(
-        "#!/usr/bin/env bash"
-    ):
-        return True
-    return False
-
-if is_bash_script(ros2_bin):
-    executable = ros2_bin
-else:
-    executable = sys.executable
-    args = [executable] + args
-
-os.execv(executable, args)
 """
 
 def _make_respath(relpath, workspace_name):
@@ -233,7 +236,8 @@ def ros_launch(
     deps = _add_deps(
         deps,
         [
-            "@ros2//:ros2",
+            "@ros2//:ros2cli_py",
+            "@ros2//:ros2launch_py",
             "@ros2//resources/bazel_ros_env:bazel_ros_env_py",
         ],
     )
