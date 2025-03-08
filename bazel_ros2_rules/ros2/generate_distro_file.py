@@ -81,8 +81,7 @@ def generate_distro_file_content(
     return interpolate(
         load_resource('templates/distro.bzl.tpl'),
         to_starlark_string_dict({
-            'AMENT_PREFIX_PATHS': [
-                sandbox(path, external=True) for path in ament_prefix_paths],
+            'AMENT_PREFIX_PATHS': ament_prefix_paths,
             'LOAD_PATHS': [
                 sandbox(path, external=True) for path in library_load_paths],
             'AVAILABLE_TYPESUPPORT_LIST': [

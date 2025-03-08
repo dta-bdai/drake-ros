@@ -95,20 +95,6 @@ def write_build_file(fd, repo_name, distro, sandbox, cache, allow_system_local=F
     template, config = configure_prologue(repo_name)
     fd.write(interpolate(template, config) + '\n')
 
-    share_ament_indices = [
-        sandbox(package_info["ament_index_directory"] + f"/resource_index/packages/{package_name}")
-        for package_name, package_info in distro["packages"].items()
-        if "ament_index_directory" in package_info
-    ]
-
-    fd.write(f"""
-filegroup(
-    name = "share_ament_index",
-    srcs = {share_ament_indices},
-)
-
-""")
-
     dependency_graph = distro['dependency_graph']
     dependency_graph = {k: set(v) for k, v in dependency_graph.items()}
     for name in toposort.toposort_flatten(dependency_graph):

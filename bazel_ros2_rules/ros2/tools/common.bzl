@@ -2,7 +2,7 @@
 
 load("//:distro.bzl", "REPOSITORY_ROOT")
 
-def share_filegroup(name, share_directories, data = []):
+def share_filegroup(name, share_directories):
     native.filegroup(
         name = name,
         srcs = [path for path in native.glob(
@@ -20,7 +20,6 @@ def share_filegroup(name, share_directories, data = []):
         ) if " " not in path],
         # NOTE(hidmic): workaround lack of support for spaces.
         # See https://github.com/bazelbuild/bazel/issues/4327.
-        data = data,
     )
 
 def interfaces_filegroup(name, share_directory):

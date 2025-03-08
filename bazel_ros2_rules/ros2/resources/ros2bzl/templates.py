@@ -39,12 +39,12 @@ def configure_package_share_filegroup(name, metadata, sandbox):
     shared_directories = [sandbox(metadata['share_directory'])]
     data = []
     if 'ament_index_directory' in metadata:
-        data.append(":share_ament_index"),
+        shared_directories.append(sandbox(metadata['ament_index_directory']))
     return (
         target_name,
         load_resource('templates/package_share_filegroup.bazel.tpl'),
         to_starlark_string_dict({
-            'name': target_name, 'share_directories': shared_directories, "data": data,
+            'name': target_name, 'share_directories': shared_directories
         })
     )
 
